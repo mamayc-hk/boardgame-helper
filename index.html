@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>桌遊規則助手</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>桌遊規則助手</h1>
+        <div class="search-box">
+            <input type="text" id="game-search" placeholder="輸入桌遊名稱...">
+            <button id="search-btn">查找</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="rules-section" class="hidden">
+            <h2 id="game-title"></h2>
+            <div class="tabs">
+                <button class="tab-btn active" data-tab="rules">規則</button>
+                <button class="tab-btn" data-tab="setup">設置</button>
+                <button class="tab-btn" data-tab="notes">筆記</button>
+            </div>
+            
+            <div id="rules-content" class="tab-content active"></div>
+            <div id="setup-content" class="tab-content"></div>
+            <div id="notes-content" class="tab-content">
+                <textarea id="user-notes" placeholder="在這裡寫下你的個人筆記..."></textarea>
+                <button id="save-notes">保存筆記</button>
+            </div>
+            
+            <div class="manual-link">
+                <a id="manual-url" target="_blank">官方說明書</a>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
