@@ -13,26 +13,50 @@
             <input type="text" id="game-search" placeholder="輸入桌遊名稱...">
             <button id="search-btn">查找</button>
         </div>
+        <button id="settings-btn" class="settings-btn">⚙️ 設置 Token</button>
     </header>
 
     <main>
+        <!-- 分类目录 -->
+        <section id="categories-section">
+            <h3>分類目錄</h3>
+            <div id="categories-list"></div>
+        </section>
+
+        <!-- 分类游戏列表 -->
+        <section id="category-games-section" class="hidden">
+            <h3 id="category-games-title"></h3>
+            <div id="category-games-list"></div>
+        </section>
+
+        <!-- Token 设置模态框 -->
+        <div id="token-modal" class="modal hidden">
+            <div class="modal-content">
+                <h3>設置 GitHub Token</h3>
+                <p>請輸入你的 GitHub Personal Access Token</p>
+                <input type="password" id="token-input" placeholder="ghp_xxxxxxxxxxxx">
+                <div class="modal-buttons">
+                    <button id="save-token">保存</button>
+                    <button id="cancel-token">取消</button>
+                </div>
+                <p class="hint">Token 會保存在瀏覽器本地，不會上傳到服務器</p>
+            </div>
+        </div>
+
         <section id="rules-section" class="hidden">
             <h2 id="game-title"></h2>
             <div class="tabs">
                 <button class="tab-btn active" data-tab="rules">規則</button>
                 <button class="tab-btn" data-tab="setup">設置</button>
-                <button class="tab-btn" data-tab="notes">筆記</button>
             </div>
             
             <div id="rules-content" class="tab-content active"></div>
             <div id="setup-content" class="tab-content"></div>
-            <div id="notes-content" class="tab-content">
-                <textarea id="user-notes" placeholder="在這裡寫下你的個人筆記..."></textarea>
-                <button id="save-notes">保存筆記</button>
-            </div>
             
-            <div class="manual-link">
-                <a id="manual-url" target="_blank">官方說明書</a>
+            <div class="edit-controls">
+                <button id="edit-btn">編輯</button>
+                <button id="save-btn" class="hidden">保存到 GitHub</button>
+                <button id="cancel-btn" class="hidden">取消</button>
             </div>
         </section>
     </main>

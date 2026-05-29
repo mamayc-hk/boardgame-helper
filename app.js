@@ -1,75 +1,249 @@
-// 初始化資料庫
-function initLocalStorage() {
-    const defaultData = {
-        "games": [
-            {
-                "id": 1,
-                "name": "璀璨寶石",
-                "rules": "玩家輪流進行回合，每回合可以執行以下三種行動之一：\n\n1. 拿取寶石：拿取2個相同顏色的寶石（該顏色需剩餘4個以上），或拿取3個不同顏色的寶石\n2. 購買發展卡：支付所需寶石購買場上的發展卡\n3. 預約發展卡：拿取一張發展卡和1個黃金籌碼\n\n遊戲結束條件：當有玩家達到15分時，完成當前回合，分數最高者獲勝。",
-                "setup": [
-                    "將所有寶石籌碼按顏色分類放置（紅、藍、綠、黑、白各7個，黃金5個）",
-                    "將發展卡按等級分為三疊（I、II、III），洗勻後背面朝上放置",
-                    "翻開每等級各4張發展卡（共12張）",
-                    "隨機抽出5張貴族板塊，正面朝上放置",
-                    "隨機決定起始玩家，開始遊戲"
-                ],
-                "manual_url": "https://cdn.1j1ju.com/medias/c2/b9/83-splendor-rulebook.pdf",
-                "notes": ""
-            },
-            {
-                "id": 2,
-                "name": "卡卡頌",
-                "rules": "玩家輪流放置板塊，可以選擇放置隨從到板塊上的道路、城市、教堂或農田。\n\n計分規則：\n- 道路：每塊板塊1分\n- 城市：每塊板塊2分，有盾牌標記額外加2分\n- 教堂：周圍9格每填滿1格得1分，最多9分\n- 農田：遊戲結束時計算，每個完成的城市旁邊的農田得3分\n\n遊戲結束：所有板塊放置完畢後，計算最終分數。",
-                "setup": [
-                    "將起始板塊（背面較深色）放在中央",
-                    "將其他板塊洗勻，疊成一疊背面朝上",
-                    "每位玩家選擇一種顏色的隨從（每人8個）",
-                    "每位玩家保留1個隨從放在計分板上作為計分標記",
-                    "隨機決定起始玩家"
-                ],
-                "manual_url": "https://cdn.1j1ju.com/medias/bc/9e/6c-carcassonne-rulebook.pdf",
-                "notes": ""
-            },
-            {
-                "id": 3,
-                "name": "富士流",
-                "rules": "玩家輪流出牌，目標是先出完所有手牌。\n\n核心規則：\n1. 出牌：打出一張牌放在自己面前\n2. 淘汰：如果你打出的牌比別人面前的牌大，可以淘汰那些牌\n   - 被淘汰的玩家要從牌庫抽一張牌\n3. 成功：如果牌成功度過一圈（回到自己），可以棄掉且不用抽牌\n4. 同盟：相同數字的牌可以同盟\n   - 同盟後的數值等於所有牌的總和\n   - 同盟成功時，所有參與者都不用抽牌\n   - 同盟失敗時，所有參與者都要抽牌\n\n重要提示：\n- 想加入同盟必須打出相同數字的牌（不能打其他數字）\n- 數字越小越難被淘汰，但越難成功度過一圈",
-                "setup": [
-                    "將所有牌洗勻",
-                    "每位玩家發6張牌作為手牌",
-                    "剩餘的牌作為牌庫放在中央",
-                    "隨機決定起始玩家",
-                    "順時針方向進行遊戲"
-                ],
-                "manual_url": "https://cdn.1j1ju.com/medias/2f/d4/8c-fuji-flush-rulebook.pdf",
-                "notes": ""
-            }
-        ]
-    };
+// GitHub API 配置
+const GITHUB_USER = 'mamayc-hk';
+const GITHUB_REPO = 'boardgame-helper';
+const GITHUB_BRANCH = 'main';
+const DATA_PATH = 'data/games';
 
-    if (!localStorage.getItem('boardgames_data')) {
-        localStorage.setItem('boardgames_data', JSON.stringify(defaultData));
-    }
-}
+// 数据源
+const DATA_INDEX = './data/index.json';
+const GAMES_PATH = './data/games/';
+
+// 游戏索引快取
+let gamesIndex = null;
+let currentGameFile = null;
+let currentGameData = null;
+let isEditing = false;
 
 // DOM 元素
 const searchInput = document.getElementById('game-search');
 const searchBtn = document.getElementById('search-btn');
+const settingsBtn = document.getElementById('settings-btn');
+const categoriesList = document.getElementById('categories-list');
+const categoryGamesSection = document.getElementById('category-games-section');
+const categoryGamesTitle = document.getElementById('category-games-title');
+const categoryGamesList = document.getElementById('category-games-list');
 const rulesSection = document.getElementById('rules-section');
 const gameTitle = document.getElementById('game-title');
 const rulesContent = document.getElementById('rules-content');
 const setupContent = document.getElementById('setup-content');
-const notesTextarea = document.getElementById('user-notes');
-const saveNotesBtn = document.getElementById('save-notes');
-const manualLink = document.getElementById('manual-url');
 const tabBtns = document.querySelectorAll('.tab-btn');
 const tabContents = document.querySelectorAll('.tab-content');
+const editBtn = document.getElementById('edit-btn');
+const saveBtn = document.getElementById('save-btn');
+const cancelBtn = document.getElementById('cancel-btn');
+const tokenModal = document.getElementById('token-modal');
+const tokenInput = document.getElementById('token-input');
+const saveTokenBtn = document.getElementById('save-token');
+const cancelTokenBtn = document.getElementById('cancel-token');
 
-// 初始化
-initLocalStorage();
+// ===== Token 管理 =====
+function getToken() {
+    return localStorage.getItem('github_token');
+}
 
-// 查找遊戲
-function searchGame() {
+function saveToken(token) {
+    localStorage.setItem('github_token', token);
+}
+
+function showTokenModal() {
+    tokenModal.classList.remove('hidden');
+    tokenInput.value = getToken() || '';
+}
+
+function hideTokenModal() {
+    tokenModal.classList.add('hidden');
+}
+
+// ===== GitHub API =====
+async function updateGitHubFile(filePath, content, commitMessage) {
+    const token = getToken();
+    
+    if (!token) {
+        alert('請先設置 GitHub Token');
+        showTokenModal();
+        return false;
+    }
+    
+    try {
+        // 1. 获取当前文件的 SHA
+        const url = `https://api.github.com/repos/${GITHUB_USER}/${GITHUB_REPO}/contents/${filePath}`;
+        
+        const getResponse = await fetch(url, {
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json'
+            }
+        });
+        
+        if (!getResponse.ok) {
+            throw new Error('無法獲取文件信息');
+        }
+        
+        const fileData = await getResponse.json();
+        const sha = fileData.sha;
+        
+        // 2. 更新文件
+        const updateResponse = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${token}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                message: commitMessage,
+                content: btoa(unescape(encodeURIComponent(content))),
+                sha: sha,
+                branch: GITHUB_BRANCH
+            })
+        });
+        
+        if (!updateResponse.ok) {
+            const error = await updateResponse.json();
+            throw new Error(error.message || '更新失敗');
+        }
+        
+        return true;
+        
+    } catch (error) {
+        console.error('GitHub API 錯誤:', error);
+        alert(`保存失敗：${error.message}`);
+        return false;
+    }
+}
+
+// ===== 游戏数据管理 =====
+async function loadGamesIndex() {
+    try {
+        const cachedIndex = localStorage.getItem('games_index');
+        
+        if (cachedIndex) {
+            gamesIndex = JSON.parse(cachedIndex);
+            renderCategories();
+            return;
+        }
+        
+        const response = await fetch(DATA_INDEX);
+        
+        if (!response.ok) {
+            throw new Error('無法載入遊戲索引');
+        }
+        
+        gamesIndex = await response.json();
+        localStorage.setItem('games_index', JSON.stringify(gamesIndex));
+        renderCategories();
+        
+    } catch (error) {
+        console.error('載入遊戲索引失敗:', error);
+        alert('載入遊戲資料失敗，請重新整理頁面');
+    }
+}
+
+// ===== 分类功能 =====
+function renderCategories() {
+    if (!gamesIndex || !gamesIndex.categories) return;
+    
+    const categoryButtons = gamesIndex.categories.map(cat => {
+        const count = gamesIndex.games.filter(g => 
+            g.categories && g.categories.includes(cat.id)
+        ).length;
+        
+        return `
+            <button class="category-btn" data-category="${cat.id}">
+                <span class="category-icon">${cat.icon}</span>
+                <span class="category-name">${cat.name}</span>
+                <span class="category-count">(${count})</span>
+            </button>
+        `;
+    }).join('');
+    
+    categoriesList.innerHTML = categoryButtons;
+    
+    // 添加分类按钮点击事件
+    document.querySelectorAll('.category-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            const category = btn.dataset.category;
+            filterByCategory(category);
+            
+            // 更新按钮状态
+            document.querySelectorAll('.category-btn').forEach(b => 
+                b.classList.remove('active')
+            );
+            btn.classList.add('active');
+        });
+    });
+}
+
+function filterByCategory(categoryId) {
+    if (!gamesIndex) return;
+    
+    const filteredGames = gamesIndex.games.filter(g => 
+        g.categories && g.categories.includes(categoryId)
+    );
+    
+    const category = gamesIndex.categories.find(c => c.id === categoryId);
+    
+    if (!category) return;
+    
+    // 显示分类游戏列表区域
+    categoryGamesTitle.textContent = `${category.icon} ${category.name}遊戲`;
+    
+    // 生成游戏列表
+    const gamesHTML = filteredGames.map(game => `
+        <div class="game-item" data-game-file="${game.file}">
+            <div class="game-name">${game.name}</div>
+            <div class="game-players">${game.players || ''}</div>
+        </div>
+    `).join('');
+    
+    categoryGamesList.innerHTML = gamesHTML;
+    categoryGamesSection.classList.remove('hidden');
+    
+    // 隐藏规则区域（如果正在显示）
+    rulesSection.classList.add('hidden');
+    
+    // 滚动到游戏列表
+    categoryGamesSection.scrollIntoView({ behavior: 'smooth' });
+    
+    // 为每个游戏项添加点击事件
+    document.querySelectorAll('.game-item').forEach(item => {
+        item.addEventListener('click', async () => {
+            const gameFile = item.dataset.gameFile;
+            const gameData = await loadGameData(gameFile);
+            
+            if (gameData) {
+                currentGameFile = gameFile;
+                currentGameData = gameData;
+                displayGame(gameData);
+                
+                // 隐藏分类游戏列表
+                categoryGamesSection.classList.add('hidden');
+            }
+        });
+    });
+}
+
+async function loadGameData(gameFile) {
+    try {
+        const response = await fetch(`${GAMES_PATH}${gameFile}`);
+        
+        if (!response.ok) {
+            throw new Error(`無法載入遊戲資料: ${gameFile}`);
+        }
+        
+        const gameData = await response.json();
+        localStorage.setItem(`game_${gameFile}`, JSON.stringify(gameData));
+        
+        return gameData;
+        
+    } catch (error) {
+        console.error('載入遊戲資料失敗:', error);
+        return null;
+    }
+}
+
+// ===== 搜索和显示 =====
+async function searchGame() {
     const searchTerm = searchInput.value.trim().toLowerCase();
     
     if (!searchTerm) {
@@ -77,28 +251,39 @@ function searchGame() {
         return;
     }
     
-    const data = JSON.parse(localStorage.getItem('boardgames_data'));
+    if (!gamesIndex) {
+        alert('遊戲索引尚未載入，請稍候');
+        return;
+    }
     
-    const foundGame = data.games.find(game => 
+    const foundGame = gamesIndex.games.find(game => 
         game.name.toLowerCase().includes(searchTerm)
     );
     
     if (foundGame) {
-        displayGame(foundGame);
+        const gameData = await loadGameData(foundGame.file);
+        
+        if (gameData) {
+            currentGameFile = foundGame.file;
+            currentGameData = gameData;
+            displayGame(gameData);
+        } else {
+            alert('載入遊戲資料失敗');
+        }
     } else {
-        alert('找不到該桌遊，請確認名稱或稍後添加。\n\n目前已收錄：璀璨寶石、卡卡頌、富士流');
+        const gameList = gamesIndex.games.map(g => g.name).join('、');
+        alert(`找不到該桌遊，請確認名稱或稍後添加。\n\n目前已收錄：${gameList}`);
         rulesSection.classList.add('hidden');
     }
 }
 
-// 顯示遊戲資訊
 function displayGame(game) {
     gameTitle.textContent = game.name;
     
-    // 規則內容（保留換行）
+    // 规则内容
     rulesContent.innerHTML = `<p style="white-space: pre-line;">${game.rules}</p>`;
     
-    // 設置步驟
+    // 设置步骤
     if (game.setup && game.setup.length > 0) {
         setupContent.innerHTML = '<ol>' + 
             game.setup.map(step => `<li>${step}</li>`).join('') + 
@@ -107,29 +292,113 @@ function displayGame(game) {
         setupContent.innerHTML = '<p>暫無設置步驟</p>';
     }
     
-    // 筆記
-    notesTextarea.value = game.notes || '';
-    
-    // 說明書連結
-    if (game.manual_url) {
-        manualLink.href = game.manual_url;
-        manualLink.textContent = `${game.name} 官方說明書 (PDF)`;
-        manualLink.parentElement.style.display = 'block';
-    } else {
-        manualLink.parentElement.style.display = 'none';
-    }
-    
     rulesSection.classList.remove('hidden');
     
-    // 默認顯示規則標籤
-    switchTab('rules');
+    // 确保不在编辑模式
+    if (isEditing) {
+        exitEditMode();
+    } else {
+        // 只更新按钮状态，不重新显示内容
+        editBtn.classList.remove('hidden');
+        saveBtn.classList.add('hidden');
+        cancelBtn.classList.add('hidden');
+    }
     
-    // 滾動到結果區域
+    switchTab('rules');
     rulesSection.scrollIntoView({ behavior: 'smooth' });
 }
 
-// 切換標籤
+// ===== 编辑功能 =====
+function enterEditMode() {
+    if (!currentGameData) return;
+    
+    isEditing = true;
+    
+    // 规则编辑
+    const rulesText = currentGameData.rules || '';
+    rulesContent.innerHTML = `<textarea class="edit-textarea" id="edit-rules">${rulesText}</textarea>`;
+    
+    // 设置编辑
+    const setupText = currentGameData.setup ? currentGameData.setup.join('\n') : '';
+    setupContent.innerHTML = `<textarea class="edit-textarea" id="edit-setup" placeholder="每行一個步驟">${setupText}</textarea>`;
+    
+    // 显示保存/取消按钮
+    editBtn.classList.add('hidden');
+    saveBtn.classList.remove('hidden');
+    cancelBtn.classList.remove('hidden');
+}
+
+function exitEditMode() {
+    isEditing = false;
+    
+    // 恢复显示内容
+    if (currentGameData) {
+        gameTitle.textContent = currentGameData.name;
+        
+        // 规则内容
+        rulesContent.innerHTML = `<p style="white-space: pre-line;">${currentGameData.rules}</p>`;
+        
+        // 设置步骤
+        if (currentGameData.setup && currentGameData.setup.length > 0) {
+            setupContent.innerHTML = '<ol>' + 
+                currentGameData.setup.map(step => `<li>${step}</li>`).join('') + 
+                '</ol>';
+        } else {
+            setupContent.innerHTML = '<p>暫無設置步驟</p>';
+        }
+    }
+    
+    // 恢复按钮
+    editBtn.classList.remove('hidden');
+    saveBtn.classList.add('hidden');
+    cancelBtn.classList.add('hidden');
+}
+
+async function saveChanges() {
+    if (!currentGameData || !currentGameFile) return;
+    
+    const rulesTextarea = document.getElementById('edit-rules');
+    const setupTextarea = document.getElementById('edit-setup');
+    
+    if (!rulesTextarea || !setupTextarea) return;
+    
+    // 获取编辑后的内容
+    const newRules = rulesTextarea.value.trim();
+    const newSetupText = setupTextarea.value.trim();
+    const newSetup = newSetupText ? newSetupText.split('\n').filter(s => s.trim()) : [];
+    
+    // 更新数据
+    currentGameData.rules = newRules;
+    currentGameData.setup = newSetup;
+    
+    // 转换为 JSON
+    const jsonContent = JSON.stringify(currentGameData, null, 2);
+    
+    // 保存到 GitHub
+    const success = await updateGitHubFile(
+        `${DATA_PATH}/${currentGameFile}`,
+        jsonContent,
+        `更新 ${currentGameData.name} 規則`
+    );
+    
+    if (success) {
+        alert('保存成功！網站將在 1-2 分鐘內更新');
+        
+        // 更新本地快取
+        localStorage.setItem(`game_${currentGameFile}`, jsonContent);
+        
+        // 退出编辑模式
+        exitEditMode();
+    }
+}
+
+// ===== 标签切换 =====
 function switchTab(tabName) {
+    if (isEditing) {
+        alert('請先保存或取消編輯');
+        return;
+    }
+    
     tabBtns.forEach(btn => {
         btn.classList.toggle('active', btn.dataset.tab === tabName);
     });
@@ -139,32 +408,7 @@ function switchTab(tabName) {
     });
 }
 
-// 保存筆記
-function saveNotes() {
-    const data = JSON.parse(localStorage.getItem('boardgames_data'));
-    const currentGameName = gameTitle.textContent;
-    
-    const gameIndex = data.games.findIndex(
-        game => game.name === currentGameName
-    );
-    
-    if (gameIndex !== -1) {
-        data.games[gameIndex].notes = notesTextarea.value;
-        localStorage.setItem('boardgames_data', JSON.stringify(data));
-        
-        // 顯示保存成功提示
-        const originalText = saveNotesBtn.textContent;
-        saveNotesBtn.textContent = '已保存 ✓';
-        saveNotesBtn.disabled = true;
-        
-        setTimeout(() => {
-            saveNotesBtn.textContent = originalText;
-            saveNotesBtn.disabled = false;
-        }, 1500);
-    }
-}
-
-// 事件監聽
+// ===== 事件监听 =====
 searchBtn.addEventListener('click', searchGame);
 
 searchInput.addEventListener('keypress', (e) => {
@@ -177,4 +421,26 @@ tabBtns.forEach(btn => {
     });
 });
 
-saveNotesBtn.addEventListener('click', saveNotes);
+settingsBtn.addEventListener('click', showTokenModal);
+
+saveTokenBtn.addEventListener('click', () => {
+    const token = tokenInput.value.trim();
+    if (token) {
+        saveToken(token);
+        hideTokenModal();
+        alert('Token 已保存');
+    } else {
+        alert('請輸入 Token');
+    }
+});
+
+cancelTokenBtn.addEventListener('click', hideTokenModal);
+
+editBtn.addEventListener('click', enterEditMode);
+
+saveBtn.addEventListener('click', saveChanges);
+
+cancelBtn.addEventListener('click', exitEditMode);
+
+// 初始化
+loadGamesIndex();
