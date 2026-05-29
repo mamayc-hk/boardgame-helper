@@ -22,63 +22,63 @@
   "games": [
     {
       "id": 1,
-      "name": "璀璨寶石",
+      "name": "璀璨寶石 (Splendor)",
       "file": "splendor.json",
       "players": "2-4人",
       "categories": ["small"]
     },
     {
       "id": 2,
-      "name": "卡卡頌",
+      "name": "卡卡頌 (Carcassonne)",
       "file": "carcassonne.json",
       "players": "2-5人",
       "categories": ["small", "medium"]
     },
     {
       "id": 3,
-      "name": "富士流",
+      "name": "富士流 (Fuji Flush)",
       "file": "fuji-flush.json",
       "players": "2-8人",
       "categories": ["small", "medium", "large"]
     },
     {
       "id": 4,
-      "name": "揭秘希特勒",
+      "name": "揭秘希特勒 (Secret Hitler)",
       "file": "secret-hitler.json",
       "players": "5-10人",
       "categories": ["medium", "large"]
     },
     {
       "id": 5,
-      "name": "一擊即中",
+      "name": "一擊即中 (One Shot)",
       "file": "one-shot.json",
       "players": "3-6人",
       "categories": ["small", "medium"]
     },
     {
       "id": 6,
-      "name": "犯罪現場",
+      "name": "犯罪現場 (Crime Scene)",
       "file": "crime-scene.json",
       "players": "4-12人",
       "categories": ["small", "medium", "large"]
     },
     {
       "id": 7,
-      "name": "色彩暗示",
+      "name": "色彩暗示 (Hues and Cues)",
       "file": "hues-and-cues.json",
       "players": "3-10人",
       "categories": ["small", "medium", "large"]
     },
     {
       "id": 8,
-      "name": "殺手賽局",
+      "name": "殺手賽局 (Dead Last)",
       "file": "dead-last.json",
       "players": "6-12人",
       "categories": ["medium", "large"]
     },
     {
       "id": 9,
-      "name": "1/1024",
+      "name": "1/1024 (One Out of 1024)",
       "file": "one-thousand-twenty-four.json",
       "players": "2-10人",
       "categories": ["small", "medium", "large"]
