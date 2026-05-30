@@ -82,6 +82,13 @@
       "file": "one-thousand-twenty-four.json",
       "players": "2-10人",
       "categories": ["small", "medium", "large"]
+    },
+    {
+      "id": 10,
+      "name": "合租時代 (Flatmates)",
+      "file": "flatmates.json",
+      "players": "2-4人",
+      "categories": ["small"]
     }
   ]
 }
