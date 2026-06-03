@@ -89,6 +89,20 @@
       "file": "flatmates.json",
       "players": "2-4人",
       "categories": ["small"]
+    },
+    {
+      "id": 11,
+      "name": "掌握時刻 (Just One)",
+      "file": "just-one.json",
+      "players": "3-7人",
+      "categories": ["small", "medium", "large"]
+    },
+    {
+      "id": 12,
+      "name": "Las Vegas Royale",
+      "file": "las-vegas-royale.json",
+      "players": "2-5人",
+      "categories": ["small", "medium"]
     }
   ]
 }
