@@ -22,13 +22,6 @@
   "games": [
     {
       "id": 1,
-      "name": "璀璨寶石 (Splendor)",
-      "file": "splendor.json",
-      "players": "2-4人",
-      "categories": ["small"]
-    },
-    {
-      "id": 2,
       "name": "卡卡頌 (Carcassonne)",
       "file": "carcassonne.json",
       "players": "2-5人",
