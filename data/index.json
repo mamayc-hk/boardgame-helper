@@ -92,10 +92,10 @@
     },
     {
       "id": 11,
-      "name": "掌握時刻 (Just One)",
-      "file": "just-one.json",
-      "players": "3-7人",
-      "categories": ["small", "medium", "large"]
+      "name": "掌握時刻 (Take Time)",
+      "file": "take-time.json",
+      "players": "1-4人",
+      "categories": ["small"]
     },
     {
       "id": 12,
